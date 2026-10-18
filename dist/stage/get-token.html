@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دریافت توکن — EasyTrader Local</title>
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{font-family:Vazirmatn,IRANSansX,Tahoma,sans-serif;background:#0f1620;color:#e7e9ef;margin:0;padding:26px;line-height:1.95}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 6px}
+  .sub{color:#8fa1b8;font-size:13px;margin-bottom:22px}
+  .card{background:#171f2b;border:1px solid #273344;border-radius:14px;padding:20px 22px;margin-bottom:16px}
+  .card h2{font-size:15px;margin:0 0 12px;color:#5dd3f0}
+  ol{margin:0;padding-inline-start:22px}
+  li{margin:8px 0}
+  a{color:#5d9cec}
+  code{background:#0d1520;border:1px solid #273344;border-radius:6px;padding:2px 8px;font-size:12px;direction:ltr;unicode-bidi:embed}
+  .drag{display:inline-flex;align-items:center;gap:8px;background:#14202c;border:2px dashed #0096b7;
+    border-radius:12px;padding:14px 22px;color:#5dd3f0;font-weight:800;cursor:grab;text-decoration:none;margin:10px 0;font-size:15px}
+  .drag:active{cursor:grabbing}
+  .btn{display:inline-block;background:linear-gradient(135deg,#0096b7,#5d9cec);color:#04121a;font-weight:800;
+    border:none;border-radius:10px;padding:11px 20px;cursor:pointer;font-family:inherit;font-size:14px;margin:6px 0;text-decoration:none}
+  .btn.sec{background:#1c2634;color:#cdd6e3;border:1px solid #273344}
+  .hint{color:#8fa1b8;font-size:12px}
+  textarea{width:100%;height:110px;background:#0d1520;color:#9fb0c4;border:1px solid #273344;
+    border-radius:8px;font-size:11px;direction:ltr;padding:10px;margin-top:8px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔑 دریافت توکن و اتصال حساب</h1>
+  <div class="sub">یک‌بار این کار را انجام بدهید؛ توکن در سرور محلی ذخیره می‌شود و داشبورد به‌طور خودکار داده می‌گیرد.</div>
+
+  <div class="card">
+    <h2>① وضعیت فعلی</h2>
+    <div class="stat" style="display:flex;align-items:center;gap:10px;font-size:13px">
+      <span class="dot" id="dot" style="width:10px;height:10px;border-radius:50%;background:#f7af3e;display:inline-block"></span>
+      <span id="statTxt">در حال بررسی…</span>
+    </div>
+    <div class="hint" id="statSub"></div>
+    <div style="margin-top:12px">
+      <button class="btn sec" id="recheck">بررسی دوباره</button>
+      <a class="btn sec" href="/" target="_blank" rel="noopener">باز کردن داشبورد</a>
+    </div>
+    <div id="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>② بوکمارکلت دریافت توکن را نصب کنید</h2>
+    <ol>
+      <li>نوار بوکمارک (نشانک) مرورگر خود را نمایان کنید — کروم: <code>Ctrl+Shift+O</code>.</li>
+      <li>دکمهٔ زیر را <b>بکشید و رها کنید</b> روی نوار بوکمارک:</li>
+      <div style="text-align:center"><a class="drag" id="bm" href="#">🔑 دریافت توکن EasyTrader</a></div>
+      <li>وارد <a href="https://d.easytrader.ir/option" target="_blank" rel="noopener">d.easytrader.ir/option</a> شوید و لاگین کنید.</li>
+      <li>در همان سایت، روی بوکمارکلت «دریافت توکن» کلیک کنید. صفحهٔ ذخیره باز می‌شود و پس از چند ثانیه پیام ✅ می‌بینید.</li>
+      <li>برای بازگشت، دکمهٔ «بازگشت به EasyTrader» را بزنید (توکن شما در همان زبانه باقی می‌ماند).</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>③ یا از کنسول اجرا کنید</h2>
+    <div class="hint">روی سایت EasyTrader → کلیک راست → <b>Inspect</b> → تب <b>Console</b> → کد زیر را کپی و Enter بزنید:</div>
+    <button class="btn sec" id="copyBtn">📋 کپی کد</button>
+    <button class="btn sec" id="showBtn">نمایش کد</button>
+    <textarea id="ta" readonly></textarea>
+  </div>
+
+  <div class="card">
+    <h2>ℹ️ نکات امنیتی</h2>
+    <div class="hint">
+      • توکن فقط به <code>127.0.0.1</code> (همین رایانه) ارسال می‌شود و در فایل <code>auth.json</code> محلی ذخیره می‌شود.<br>
+      • هیچ داده‌ای به هیچ سرور دیگری فرستاده نمی‌شود.<br>
+      • توکن معمولاً چند ساعت معتبر است؛ پس از انقضا، دوباره بوکمارکلت را اجرا کنید.<br>
+      • برای پاک کردن، کافی است فایل <code>auth.json</code> را حذف کنید.
+    </div>
+  </div>
+</div>
+
+<script>
+  var TOKEN_KEY = 'oidc.user:https://login.emofid.com:easy_pkce';
+
+  // ── کدی که روی سایت EasyTrader اجرا می‌شود ──
+  // از «ریدایرکت سطح‌بالا» استفاده می‌کنیم چون CSP سایت (connect-src) مانع fetch است
+  // و توکن در فرگمنت (#) قرار می‌گیرد تا در URL سرور/لاگ هم ثبت نشود.
+  var GRABBER = '(' + function () {
+    try {
+      var raw = sessionStorage.getItem('oidc.user:https://login.emofid.com:easy_pkce');
+      if (!raw) { alert('توکن یافت نشد!\n\nابتدا وارد سایت شوید و لاگین کنید، سپس دوباره اجرا کنید.'); return; }
+      var o = JSON.parse(raw);
+      var at = o.access_token;
+      if (!at) { alert('access_token در sessionStorage یافت نشد.'); return; }
+      var payload = {};
+      try { payload = JSON.parse(atob(at.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch (e) {}
+      var expiresAt = o.expires_at || (payload.exp ? payload.exp : '');
+
+      // نوار وضعیت موقت
+      var status = document.createElement('div');
+      status.style.cssText = 'position:fixed;top:14px;right:14px;z-index:99999;background:#0d1520;color:#5dd3f0;' +
+        'border:1px solid #0096b7;border-radius:12px;padding:12px 18px;font:13px Tahoma;direction:rtl;' +
+        'box-shadow:0 6px 24px rgba(0,0,0,.45)';
+      status.textContent = '⏳ در حال انتقال به سرور محلی…';
+      document.body.appendChild(status);
+
+      // ریدایرکت سطح‌بالا به localhost با توکن در فرگمنت (# فرگمنت به سرور نمی‌رود)
+      window.location.href = 'http://127.0.0.1:8787/save-token' +
+        '#t=' + encodeURIComponent(at) +
+        '&e=' + encodeURIComponent(String(expiresAt || ''));
+    } catch (e) { alert('خطا: ' + e); }
+  } + ')();';
+
+  // ── ساخت بوکمارکلت ──
+  document.getElementById('bm').setAttribute('href', 'javascript:' + encodeURIComponent(GRABBER));
+
+  // ── بررسی وضعیت ──
+  function check() {
+    fetch('/api/status', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (s) {
+      var d = document.getElementById('dot'), t = document.getElementById('statTxt'), sub = document.getElementById('statSub');
+      if (s.hasToken && !s.tokenExpired) {
+        d.style.background = '#1bbf89';
+        t.textContent = '✅ متصل — توکن معتبر ثبت شده است';
+        sub.textContent = 'آخرین ثبت: ' + (s.tokenUpdated || '—') + ' • سرور آماده‌ی ارسال داده به داشبورد است.';
+      } else if (s.hasToken && s.tokenExpired) {
+        d.style.background = '#e5645b';
+        t.textContent = '⌛ توکن منقضی شده';
+        sub.textContent = 'دوباره در سایت لاگین کنید و بوکمارکلت را اجرا کنید.';
+      } else {
+        d.style.background = '#f7af3e';
+        t.textContent = '⚪ هنوز توکنی ثبت نشده';
+        sub.textContent = 'مراحل بالا را برای اتصال حساب انجام دهید.';
+      }
+    }).catch(function () {
+      document.getElementById('dot').style.background = '#e5645b';
+      document.getElementById('statTxt').textContent = '❌ سرور در دسترس نیست';
+      document.getElementById('statSub').textContent = 'مطمئن شوید server.py در حال اجراست.';
+    });
+  }
+
+  document.getElementById('recheck').addEventListener('click', check);
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    navigator.clipboard.writeText(GRABBER).then(function () {
+      var b = document.getElementById('copyBtn'); b.textContent = '✅ کپی شد';
+      setTimeout(function () { b.textContent = '📋 کپی کد'; }, 1600);
+    }).catch(function () { show(); });
+  });
+  function show() {
+    var ta = document.getElementById('ta');
+    ta.style.display = ta.style.display === 'block' ? 'none' : 'block';
+    ta.value = GRABBER;
+  }
+  document.getElementById('showBtn').addEventListener('click', show);
+
+  check();
+  setInterval(check, 8000);
+</script>
+</body>
+</html>

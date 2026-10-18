@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ذخیرهٔ توکن — EasyTrader Local</title>
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{font-family:Vazirmatn,IRANSansX,Tahoma,sans-serif;background:#0f1620;color:#e7e9ef;
+       margin:0;padding:26px;line-height:1.95;display:flex;align-items:center;justify-content:center;min-height:100vh}
+  .card{background:#171f2b;border:1px solid #273344;border-radius:16px;padding:28px 30px;max-width:520px;width:100%;text-align:center}
+  .big{font-size:46px;margin-bottom:8px}
+  h1{font-size:19px;margin:0 0 10px}
+  .p{color:#8fa1b8;font-size:13px;line-height:2}
+  .ok{color:#1bbf89} .bad{color:#e5645b} .wait{color:#5dd3f0}
+  .btn{display:inline-block;background:linear-gradient(135deg,#0096b7,#5d9cec);color:#04121a;font-weight:800;
+       border:none;border-radius:10px;padding:11px 22px;cursor:pointer;font-family:inherit;font-size:14px;margin:8px 6px 0;text-decoration:none}
+  .btn.sec{background:#1c2634;color:#cdd6e3;border:1px solid #273344}
+  .hidden{display:none}
+  code{background:#0d1520;border:1px solid #273344;border-radius:6px;padding:2px 8px;font-size:12px;direction:ltr;unicode-bidi:embed}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="big" id="ico">⏳</div>
+  <h1 id="title">در حال دریافت توکن…</h1>
+  <div class="p" id="msg">توکن از آدرس صفحه خوانده می‌شود — لطفاً چند لحظه صبر کنید.</div>
+  <div id="actions" class="hidden">
+    <button class="btn" id="backBtn">↩ بازگشت به EasyTrader</button>
+    <a class="btn sec" href="/">باز کردن داشبورد</a>
+    <a class="btn sec" href="/get-token" target="_blank" rel="noopener">وضعیت اتصال</a>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var ico = document.getElementById('ico');
+  var title = document.getElementById('title');
+  var msg = document.getElementById('msg');
+  var actions = document.getElementById('actions');
+
+  function done(ok, text) {
+    ico.textContent = ok ? '✅' : '❌';
+    title.textContent = ok ? 'توکن ذخیره شد' : 'خطا در ذخیرهٔ توکن';
+    title.className = ok ? 'ok' : 'bad';
+    msg.innerHTML = text;
+    actions.classList.remove('hidden');
+  }
+
+  // ── خواندن توکن از فرگمنت: #t=<token>&e=<expires> ──
+  var hash = location.hash || '';
+  var params = {};
+  hash.replace(/^#/, '').split('&').forEach(function (kv) {
+    if (!kv) return;
+    var p = kv.indexOf('=');
+    if (p < 0) return;
+    params[kv.slice(0, p)] = decodeURIComponent(kv.slice(p + 1).replace(/\+/g, ' '));
+  });
+
+  var token = params.t || '';
+  var exp = params.e || '';
+
+  if (!token) {
+    done(false,
+      'هیچ توکنی در آدرس یافت نشد.<br>لطفاً مراحل بوکمارکلت را از روی صفحهٔ ' +
+      '<a href="/get-token">راهنمای دریافت توکن</a> دوباره انجام دهید.');
+    return;
+  }
+
+  // همان‌مبأ (localhost) — بدون محدودیت CSP
+  fetch('/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    body: JSON.stringify({ access_token: token, expires_at: exp || null })
+  }).then(function (r) { return r.json(); }).then(function (j) {
+    if (j && j.ok) {
+      done(true, 'حساب معاملاتی شما به سرور محلی متصل شد و داده‌های داشبورد آماده شد.<br>' +
+        '<code>127.0.0.1</code> • <code>auth.json</code>');
+    } else {
+      done(false, (j && j.error) || 'پاسخ نامشخص از سرور');
+    }
+  }).catch(function (e) {
+    done(false, 'اتصال به سرور محلی برقرار نشد: ' + e);
+  });
+
+  document.getElementById('backBtn').addEventListener('click', function () { history.back(); });
+})();
+</script>
+</body>
+</html>

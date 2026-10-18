@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>داشبورد رصد آپشن EasyTrader</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- نوار بالا -->
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">E</span>
+    <div class="brand-txt">
+      <strong>رصد بازار آپشن</strong>
+      <small>EasyTrader • نسخهٔ سیستمی</small>
+    </div>
+  </div>
+
+  <div class="conn" id="conn">
+    <span class="dot" id="connDot"></span>
+    <span id="connTxt">در حال اتصال…</span>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="btnRefresh">رفرش</button>
+    <button class="btn btn-active" id="btnPause" title="توقف/ادامهٔ رفرش خودکار">⏸</button>
+    <span class="clock" id="clock">--:--:--</span>
+  </div>
+</header>
+
+<!-- زبانه‌ها -->
+<nav class="tabs">
+  <button class="tab on" data-tab="summary">خلاصه</button>
+  <button class="tab" data-tab="positions">موقعیت‌ها</button>
+  <button class="tab" data-tab="chain">زنجیرهٔ آپشن</button>
+  <button class="tab" data-tab="orders">سفارش‌ها</button>
+  <button class="tab" data-tab="market">بازار</button>
+</nav>
+
+<!-- محتوا -->
+<main id="main">
+  <section class="pane on" id="pane-summary"></section>
+  <section class="pane" id="pane-positions"></section>
+  <section class="pane" id="pane-chain"></section>
+  <section class="pane" id="pane-orders"></section>
+  <section class="pane" id="pane-market"></section>
+</main>
+
+<!-- نوار پایین -->
+<footer class="foot">
+  <span id="footStatus">آماده</span>
+  <span class="sep"></span>
+  <span id="footCache"></span>
+  <span class="grow"></span>
+  <span id="footNext"></span>
+  <span id="footUpdated"></span>
+</footer>
+
+<!-- کارت راهنمای توکن (وقتی توکن نیست/منقضی است) -->
+<div class="overlay" id="tokenOverlay" hidden>
+  <div class="modal">
+    <h2 id="tokTitle">اتصال حساب لازم است</h2>
+    <p id="tokMsg">
+      برای دریافت داده‌ها، یک‌بار باید توکن نشست خود را به سرور محلی بدهید.
+    </p>
+    <ol class="steps">
+      <li>وارد <a href="https://d.easytrader.ir/option" target="_blank" rel="noopener">d.easytrader.ir/option</a> شوید و لاگین کنید.</li>
+      <li>صفحهٔ <a href="/get-token" target="_blank" rel="noopener">راهنمای دریافت توکن</a> را باز کنید و بوکمارکلت را بار بکشید.</li>
+      <li>در سایت EasyTrader روی بوکمارکلت کلیک کنید تا توکن خودکار به همین سرور ارسال شود.</li>
+    </ol>
+    <div class="modal-actions">
+      <a class="btn btn-active" href="/get-token" target="_blank" rel="noopener">راهنمای دریافت توکن</a>
+      <button class="btn" id="tokRetry">تازه‌سازی وضعیت</button>
+      <button class="btn btn-ghost" id="tokClose">بستن</button>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
