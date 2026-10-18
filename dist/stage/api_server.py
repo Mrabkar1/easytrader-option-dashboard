@@ -38,6 +38,7 @@ import os
 import sys
 import threading
 import time
+import subprocess
 from collections import defaultdict, deque
 
 try:
@@ -66,6 +67,10 @@ DEFAULT_CONFIG = {
     "cors_origins": ["*"],
     "rate_limit_per_min": 120,
     "debug": False,
+    "auto_update": True,
+    "update_check_on_startup": True,
+    "expose_docs": True,
+    "max_request_bytes": 1048576,
 }
 
 def _load_config():
@@ -261,14 +266,20 @@ app = FastAPI(
     title="EasyTrader Option — Local API",
     description="REST API برای داده‌های بازار آپشن EasyTrader (فقط خواندن). "
                 "مستندات تعاملی همین صفحه (Swagger) — برای اتصال از سایر سیستم‌ها به openapi.json کد بسازید.",
-    version="1.2.0",
+    version="1.3.0",
     debug=DEBUG,
+    docs_url="/docs" if CFG.get("expose_docs", True) else None,
+    redoc_url="/redoc" if CFG.get("expose_docs", True) else None,
 )
 
-# ── middleware: لاگ درخواست‌ها (تمام مسیرها) ──
+# ── middleware: امنیت + محدودیت حجم + لاگ درخواست‌ها ──
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def security_and_log(request: Request, call_next):
     t0 = time.time()
+    # محدودیت حجم body برای جلوگیری از سوءاستفاده
+    cl = request.headers.get("content-length")
+    if cl and cl.isdigit() and int(cl) > int(CFG.get("max_request_bytes") or 1048576):
+        return JSONResponse({"ok": False, "error": "payload too large"}, status_code=413)
     try:
         response = await call_next(request)
     except Exception as e:
@@ -277,6 +288,11 @@ async def log_requests(request: Request, call_next):
             {"ok": False, "error": "INTERNAL", "detail": (str(e) if DEBUG else "internal error")},
             status_code=500,
         )
+    # هدرهای امنیتی
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
     dt = round((time.time() - t0) * 1000, 1)
     logger.debug("%s %s %s %sms (%s)", request.client.host if request.client else "-", request.method,
                  request.url.path, dt, response.status_code)
@@ -340,23 +356,62 @@ async def post_token(request: Request):
 def health():
     return {"status": "up", "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "token": "none" if not _token.get("access_token") else ("expired" if token_expired() else "valid"),
-            "version": "1.2.0",
+            "version": "1.3.0",
             "debug": DEBUG,
             "cacheEntries": len(_cache),
             "python": sys.version.split()[0]}
 
-@app.get("/api/debug/ping", dependencies=api_guard, tags=["debug"],
-         summary="echo برای تست اتصال از پروژه‌های دیگر")
-def debug_ping(request: Request):
-    return {"pong": True, "client": request.client.host if request.client else None,
-            "now": time.time(), "debug": DEBUG}
+@app.get("/api/security/audit", dependencies=api_guard, tags=["security"],
+         summary="گزارش امنیتی (وضعیت توکن، کلید، CORS، rate-limit، لاگ)")
+def security_audit():
+    import os as _os
+    log_path = os.path.join(BASE_DIR, "server.log")
+    log_size = os.path.getsize(log_path) if os.path.exists(log_path) else 0
+    auth_perms = None
+    try:
+        if os.path.exists(AUTH_FILE):
+            import stat as _st
+            auth_perms = oct(os.stat(AUTH_FILE).st_mode & 0o777)
+    except Exception:
+        pass
+    return {
+        "token": "none" if not _token.get("access_token") else ("expired" if token_expired() else "valid"),
+        "api_key_set": bool(CFG.get("api_key")),
+        "host_binding": CFG.get("host"),
+        "cors_origins": CFG.get("cors_origins"),
+        "rate_limit_per_min": CFG.get("rate_limit_per_min"),
+        "max_request_bytes": CFG.get("max_request_bytes"),
+        "expose_docs": CFG.get("expose_docs", True),
+        "auto_update": CFG.get("auto_update", True),
+        "debug": DEBUG,
+        "log_file_bytes": log_size,
+        "auth_file_perms": auth_perms,
+        "uptime_check": "ok",
+    }
 
-@app.get("/api/debug/cache", dependencies=api_guard, tags=["debug"],
-         summary="وضعیت کش (کلیدها + سن)")
-def debug_cache():
-    now = time.time()
-    return {"entries": [{"path": k, "age": round(now - v["ts"], 1),
-                         "ttl": CACHE_TTL.get(k, DEFAULT_TTL)} for k, v in _cache.items()]}
+@app.get("/api/update/check", dependencies=api_guard, tags=["update"],
+         summary="بررسی وجود نسخهٔ جدیدتر روی GitHub")
+def update_check():
+    try:
+        import updater
+        remote, url, tag = updater.latest_release()
+        cur = updater.current_version()
+        return {"current": cur, "latest": remote, "tag": tag,
+                "updateAvailable": updater._newer(remote, cur), "downloadUrl": url}
+    except Exception as e:
+        return {"current": "unknown", "latest": None, "error": str(e)}
+
+@app.post("/api/update/apply", dependencies=api_guard, tags=["update"],
+          summary="اعمال به‌روزرسانی (در پس‌زمینه؛ سرور پس از جایگزینی ری‌استارت می‌شود)")
+def update_apply():
+    def _run():
+        try:
+            import updater
+            updater.check_and_apply(force=True, interactive=False)
+        except Exception as e:
+            logger.exception("update apply failed: %s", e)
+    threading.Thread(target=_run, daemon=True).start()
+    return {"ok": True, "message": "update started in background; server will restart"}
 
 @app.get("/api/status", dependencies=api_guard, tags=["system"],
          summary="وضعیت اتصال و توکن")
@@ -474,7 +529,28 @@ def main():
         else:
             log("  ⚠ دسترسی روی شبکه فعال است ولی api_key ست نشده — در config.json ست کنید")
     log("=" * 58)
-    uvicorn.run(app, host=host, port=port, log_level="debug" if DEBUG else "warning")
+    # راه‌اندازی بررسی خودکار به‌روزرسانی در پس‌زمینه (غیرمسدودکننده)
+    if CFG.get("auto_update", True) and CFG.get("update_check_on_startup", True):
+        def _bg_update():
+            time.sleep(8)  # بگذار سرور کاملاً بالا بیاید
+            try:
+                import updater
+                updater.check_and_apply(force=False, interactive=False)
+            except Exception as e:
+                logger.exception("auto-update check failed: %s", e)
+        threading.Thread(target=_bg_update, daemon=True).start()
+
+    # محدودیت حجم لاگ فایل (حداکثر ~5MB)
+    try:
+        lp = os.path.join(BASE_DIR, 'server.log')
+        if os.path.exists(lp) and os.path.getsize(lp) > 5 * 1024 * 1024:
+            backup = lp + '.old'
+            if os.path.exists(backup): os.remove(backup)
+            os.replace(lp, backup)
+    except Exception:
+        pass
+
+    uvicorn.run(app, host=host, port=port, log_level='debug' if DEBUG else 'warning')
 
 if __name__ == "__main__":
     main()
