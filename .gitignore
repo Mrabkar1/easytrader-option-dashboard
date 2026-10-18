@@ -5,6 +5,7 @@ auth.json
 server.log
 config.json
 backup-pre-update-*
+*.zip
 __pycache__/
 *.pyc
 *.pyo
