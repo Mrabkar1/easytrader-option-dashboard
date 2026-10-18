@@ -1,0 +1,14 @@
+# سرّی — هرگز منتشر نشود
+auth.json
+*.token
+*.log
+
+# پایتون
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# ویندوز
+Thumbs.db
+desktop.ini
