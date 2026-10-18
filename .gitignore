@@ -2,13 +2,12 @@
 auth.json
 *.token
 *.log
-
-# پایتون
+server.log
+config.json
+backup-pre-update-*
 __pycache__/
 *.pyc
 *.pyo
 .venv/
-
-# ویندوز
 Thumbs.db
 desktop.ini
