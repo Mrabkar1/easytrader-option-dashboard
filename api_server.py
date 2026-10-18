@@ -1,34 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-EasyTrader Option — API Server (FastAPI)
+EasyTrader Option â€” API Server (FastAPI)
 ========================================
-داشبورد + REST API برای اتصال «سیستم‌های دیگر و پروژه‌های دیگر».
+Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯ + REST API Ø¨Ø±Ø§ÛŒ Ø§ØªØµØ§Ù„ Â«Ø³ÛŒØ³ØªÙ…â€ŒÙ‡Ø§ÛŒ Ø¯ÛŒÚ¯Ø± Ùˆ Ù¾Ø±ÙˆÚ˜Ù‡â€ŒÙ‡Ø§ÛŒ Ø¯ÛŒÚ¯Ø±Â».
 
-ویژگی‌های اتصال:
-  - Swagger UI خودکار:      http://127.0.0.1:8787/docs
+ÙˆÛŒÚ˜Ú¯ÛŒâ€ŒÙ‡Ø§ÛŒ Ø§ØªØµØ§Ù„:
+  - Swagger UI Ø®ÙˆØ¯Ú©Ø§Ø±:      http://127.0.0.1:8787/docs
   - ReDoc:                  http://127.0.0.1:8787/redoc
-  - OpenAPI JSON (کد جنریت): http://127.0.0.1:8787/openapi.json
-  - CORS سفارشی (config.json)
-  - کلید API اختیاری برای دسترسی از روی شبکه (X-API-Key)
-  - استریم SSE زنده:        /api/stream  (خروجی periodical — فشار کم)
-  - محدودیت نرخ برای کلاینت‌های خارجی
+  - OpenAPI JSON (Ú©Ø¯ Ø¬Ù†Ø±ÛŒØª): http://127.0.0.1:8787/openapi.json
+  - CORS Ø³ÙØ§Ø±Ø´ÛŒ (config.json)
+  - Ú©Ù„ÛŒØ¯ API Ø§Ø®ØªÛŒØ§Ø±ÛŒ Ø¨Ø±Ø§ÛŒ Ø¯Ø³ØªØ±Ø³ÛŒ Ø§Ø² Ø±ÙˆÛŒ Ø´Ø¨Ú©Ù‡ (X-API-Key)
+  - Ø§Ø³ØªØ±ÛŒÙ… SSE Ø²Ù†Ø¯Ù‡:        /api/stream  (Ø®Ø±ÙˆØ¬ÛŒ periodical â€” ÙØ´Ø§Ø± Ú©Ù…)
+  - Ù…Ø­Ø¯ÙˆØ¯ÛŒØª Ù†Ø±Ø® Ø¨Ø±Ø§ÛŒ Ú©Ù„Ø§ÛŒÙ†Øªâ€ŒÙ‡Ø§ÛŒ Ø®Ø§Ø±Ø¬ÛŒ
 
- politeness (کم‌فشار بودن برای سایت):
-  - کش هوشمند با TTL برای هر endpoint (زنجیره ۱۰ دقیقه)
-  - حداقل ۳ ثانیه فاصله بین درخواست‌های خروجی واقعی
-  - فقط GET/خواندن — بدون ثبت/حذف سفارش
+ politeness (Ú©Ù…â€ŒÙØ´Ø§Ø± Ø¨ÙˆØ¯Ù† Ø¨Ø±Ø§ÛŒ Ø³Ø§ÛŒØª):
+  - Ú©Ø´ Ù‡ÙˆØ´Ù…Ù†Ø¯ Ø¨Ø§ TTL Ø¨Ø±Ø§ÛŒ Ù‡Ø± endpoint (Ø²Ù†Ø¬ÛŒØ±Ù‡ Û±Û° Ø¯Ù‚ÛŒÙ‚Ù‡)
+  - Ø­Ø¯Ø§Ù‚Ù„ Û³ Ø«Ø§Ù†ÛŒÙ‡ ÙØ§ØµÙ„Ù‡ Ø¨ÛŒÙ† Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ø®Ø±ÙˆØ¬ÛŒ ÙˆØ§Ù‚Ø¹ÛŒ
+  - ÙÙ‚Ø· GET/Ø®ÙˆØ§Ù†Ø¯Ù† â€” Ø¨Ø¯ÙˆÙ† Ø«Ø¨Øª/Ø­Ø°Ù Ø³ÙØ§Ø±Ø´
 
-config.json (خودکار ساخته می‌شود):
+config.json (Ø®ÙˆØ¯Ú©Ø§Ø± Ø³Ø§Ø®ØªÙ‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯):
   {
-    "host": "127.0.0.1",          // «0.0.0.0» برای دسترسی روی LAN
+    "host": "127.0.0.1",          // Â«0.0.0.0Â» Ø¨Ø±Ø§ÛŒ Ø¯Ø³ØªØ±Ø³ÛŒ Ø±ÙˆÛŒ LAN
     "port": 8787,
-    "api_key": null,              // مثل "s3cr3t" — وقتی ست باشد، کلاینت‌های غیرlocal باید بفرستند
-    "cors_origins": ["*"],        // دامنه‌های مجاز CORS
-    "rate_limit_per_min": 120     // درخواست‌در دقیقه به‌ازای هر IP خارجی
+    "api_key": null,              // Ù…Ø«Ù„ "s3cr3t" â€” ÙˆÙ‚ØªÛŒ Ø³Øª Ø¨Ø§Ø´Ø¯ØŒ Ú©Ù„Ø§ÛŒÙ†Øªâ€ŒÙ‡Ø§ÛŒ ØºÛŒØ±local Ø¨Ø§ÛŒØ¯ Ø¨ÙØ±Ø³ØªÙ†Ø¯
+    "cors_origins": ["*"],        // Ø¯Ø§Ù…Ù†Ù‡â€ŒÙ‡Ø§ÛŒ Ù…Ø¬Ø§Ø² CORS
+    "rate_limit_per_min": 120     // Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒØ¯Ø± Ø¯Ù‚ÛŒÙ‚Ù‡ Ø¨Ù‡â€ŒØ§Ø²Ø§ÛŒ Ù‡Ø± IP Ø®Ø§Ø±Ø¬ÛŒ
   }
 
-اجرا:
+Ø§Ø¬Ø±Ø§:
     python api_server.py
 """
 
@@ -55,7 +55,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
-# ───────────────────────── مسیرها/پیکربندی ─────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ù…Ø³ÛŒØ±Ù‡Ø§/Ù¾ÛŒÚ©Ø±Ø¨Ù†Ø¯ÛŒ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
 AUTH_FILE = os.path.join(BASE_DIR, "auth.json")
@@ -94,7 +94,7 @@ def _load_config():
 CFG = _load_config()
 DEBUG = bool(CFG.get("debug", False)) or os.environ.get("EASYTRADER_DEBUG", "").lower() in ("1","true","yes")
 
-# ───────────────────────── توکن ─────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ØªÙˆÚ©Ù† â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 _lock = threading.Lock()
 _token = {"access_token": None, "expires_at": None, "updated_at": None}
 
@@ -122,7 +122,7 @@ def token_expired() -> bool:
     except Exception:
         return False
 
-# ───────────────────────── کلاینت API سایت (کش + throttle) ─────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ú©Ù„Ø§ÛŒÙ†Øª API Ø³Ø§ÛŒØª (Ú©Ø´ + throttle) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 API_BASE = "https://api-mts.orbis.easytrader.ir"
 ORIGIN = "https://d.easytrader.ir"
 OPTION_MARKET_UNITS = [45, 46, 47, 48]
@@ -190,7 +190,7 @@ def fetch_site(path: str, method: str = "GET", body=None):
         _cache[path] = {"ts": time.time(), "data": parsed}
     return parsed
 
-# ───────────────────────── builderها ─────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ builderÙ‡Ø§ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def build_summary() -> dict:
     out, errs = {}, {}
     def safe(k, path, **kw):
@@ -225,7 +225,7 @@ def filter_chain(q: str, ctype: str, target_units, limit: int, offset: int) -> d
     return {"total": total, "count": len(options[offset:offset+limit]),
             "items": options[offset:offset+limit]}
 
-# ───────────────────────── rate-limit (کلاینت خارجی) ─────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ rate-limit (Ú©Ù„Ø§ÛŒÙ†Øª Ø®Ø§Ø±Ø¬ÛŒ) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 _hits: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
 _rl_lock = threading.Lock()
 
@@ -246,7 +246,7 @@ def _check_rate(request: Request):
         dq.append(now)
 
 def _check_key(request: Request):
-    """کلید API فقط برای کلاینت‌های غیرlocal لازم است."""
+    """Ú©Ù„ÛŒØ¯ API ÙÙ‚Ø· Ø¨Ø±Ø§ÛŒ Ú©Ù„Ø§ÛŒÙ†Øªâ€ŒÙ‡Ø§ÛŒ ØºÛŒØ±local Ù„Ø§Ø²Ù… Ø§Ø³Øª."""
     if not CFG.get("api_key"): return
     if _is_local(request): return
     key = request.headers.get("X-API-Key") or request.query_params.get("api_key")
@@ -260,23 +260,23 @@ def fail(code: str, http: int):
     return JSONResponse({"ok": False, "error": code},
                         status_code=http if code not in ("NO_TOKEN","UNAUTHORIZED") else 401)
 
-# ───────────────────────── FastAPI app ─────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ FastAPI app â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 load_token_from_disk()
 app = FastAPI(
-    title="EasyTrader Option — Local API",
-    description="REST API برای داده‌های بازار آپشن EasyTrader (فقط خواندن). "
-                "مستندات تعاملی همین صفحه (Swagger) — برای اتصال از سایر سیستم‌ها به openapi.json کد بسازید.",
+    title="EasyTrader Option â€” Local API",
+    description="REST API Ø¨Ø±Ø§ÛŒ Ø¯Ø§Ø¯Ù‡â€ŒÙ‡Ø§ÛŒ Ø¨Ø§Ø²Ø§Ø± Ø¢Ù¾Ø´Ù† EasyTrader (ÙÙ‚Ø· Ø®ÙˆØ§Ù†Ø¯Ù†). "
+                "Ù…Ø³ØªÙ†Ø¯Ø§Øª ØªØ¹Ø§Ù…Ù„ÛŒ Ù‡Ù…ÛŒÙ† ØµÙØ­Ù‡ (Swagger) â€” Ø¨Ø±Ø§ÛŒ Ø§ØªØµØ§Ù„ Ø§Ø² Ø³Ø§ÛŒØ± Ø³ÛŒØ³ØªÙ…â€ŒÙ‡Ø§ Ø¨Ù‡ openapi.json Ú©Ø¯ Ø¨Ø³Ø§Ø²ÛŒØ¯.",
     version="1.3.0",
     debug=DEBUG,
     docs_url="/docs" if CFG.get("expose_docs", True) else None,
     redoc_url="/redoc" if CFG.get("expose_docs", True) else None,
 )
 
-# ── middleware: امنیت + محدودیت حجم + لاگ درخواست‌ها ──
+# â”€â”€ middleware: Ø§Ù…Ù†ÛŒØª + Ù…Ø­Ø¯ÙˆØ¯ÛŒØª Ø­Ø¬Ù… + Ù„Ø§Ú¯ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ â”€â”€
 @app.middleware("http")
 async def security_and_log(request: Request, call_next):
     t0 = time.time()
-    # محدودیت حجم body برای جلوگیری از سوءاستفاده
+    # Ù…Ø­Ø¯ÙˆØ¯ÛŒØª Ø­Ø¬Ù… body Ø¨Ø±Ø§ÛŒ Ø¬Ù„ÙˆÚ¯ÛŒØ±ÛŒ Ø§Ø² Ø³ÙˆØ¡Ø§Ø³ØªÙØ§Ø¯Ù‡
     cl = request.headers.get("content-length")
     if cl and cl.isdigit() and int(cl) > int(CFG.get("max_request_bytes") or 1048576):
         return JSONResponse({"ok": False, "error": "payload too large"}, status_code=413)
@@ -288,7 +288,7 @@ async def security_and_log(request: Request, call_next):
             {"ok": False, "error": "INTERNAL", "detail": (str(e) if DEBUG else "internal error")},
             status_code=500,
         )
-    # هدرهای امنیتی
+    # Ù‡Ø¯Ø±Ù‡Ø§ÛŒ Ø§Ù…Ù†ÛŒØªÛŒ
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
@@ -309,13 +309,13 @@ app.add_middleware(
 async def api_error_handler(request: Request, exc: ApiError):
     return fail(exc.code, exc.http)
 
-# ── مدل‌های پاسخ (برای Swagger خوانا) ──
+# â”€â”€ Ù…Ø¯Ù„â€ŒÙ‡Ø§ÛŒ Ù¾Ø§Ø³Ø® (Ø¨Ø±Ø§ÛŒ Swagger Ø®ÙˆØ§Ù†Ø§) â”€â”€
 class Envelope(BaseModel):
     ok: bool
     data: dict | list | None = None
     error: str | None = None
 
-# ── صفحات داشبورد و حدس‌ها ──
+# â”€â”€ ØµÙØ­Ø§Øª Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯ Ùˆ Ø­Ø¯Ø³â€ŒÙ‡Ø§ â”€â”€
 @app.get("/", include_in_schema=False)
 def dashboard():
     return FileResponse(os.path.join(BASE_DIR, "dashboard.html"))
@@ -334,11 +334,11 @@ def save_token_page(): return FileResponse(os.path.join(BASE_DIR, "save-token.ht
 
 @app.post("/api/token", include_in_schema=False)
 async def post_token(request: Request):
-    """دریافت توکن (از save-token.html) — همان behavior سرور قبلی."""
+    """Ø¯Ø±ÛŒØ§ÙØª ØªÙˆÚ©Ù† (Ø§Ø² save-token.html) â€” Ù‡Ù…Ø§Ù† behavior Ø³Ø±ÙˆØ± Ù‚Ø¨Ù„ÛŒ."""
     body = await request.json()
     tok = (body or {}).get("access_token")
     if not tok:
-        return JSONResponse({"ok": False, "error": "access_token خالی است"}, status_code=400)
+        return JSONResponse({"ok": False, "error": "access_token Ø®Ø§Ù„ÛŒ Ø§Ø³Øª"}, status_code=400)
     _token.update({"access_token": tok,
                    "expires_at": (body or {}).get("expires_at"),
                    "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S")})
@@ -348,21 +348,34 @@ async def post_token(request: Request):
                        "updated_at": _token["updated_at"]}, f, ensure_ascii=False, indent=2)
     except Exception: pass
     _cache.clear()
-    return {"ok": True, "message": "توکن ذخیره شد."}
+    return {"ok": True, "message": "ØªÙˆÚ©Ù† Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯."}
 
-# ═══════════════════ API عمومی (برای اتصال پروژه‌های دیگر) ═══════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• API Ø¹Ù…ÙˆÙ…ÛŒ (Ø¨Ø±Ø§ÛŒ Ø§ØªØµØ§Ù„ Ù¾Ø±ÙˆÚ˜Ù‡â€ŒÙ‡Ø§ÛŒ Ø¯ÛŒÚ¯Ø±) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 @app.get("/api/health", dependencies=api_guard, tags=["system"],
-         summary="پراب زنده بودن — بدون توکن لازم")
+         summary="Ù¾Ø±Ø§Ø¨ Ø²Ù†Ø¯Ù‡ Ø¨ÙˆØ¯Ù† â€” Ø¨Ø¯ÙˆÙ† ØªÙˆÚ©Ù† Ù„Ø§Ø²Ù…")
 def health():
     return {"status": "up", "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "token": "none" if not _token.get("access_token") else ("expired" if token_expired() else "valid"),
-            "version": "1.3.1",
+            "version": "1.3.2",
             "debug": DEBUG,
             "cacheEntries": len(_cache),
             "python": sys.version.split()[0]}
 
+@app.get("/api/debug/ping", dependencies=api_guard, tags=["debug"],
+         summary="echo برای تست اتصال از پروژه‌های دیگر")
+def debug_ping(request: Request):
+    return {"pong": True, "client": request.client.host if request.client else None,
+            "now": time.time(), "debug": DEBUG}
+
+@app.get("/api/debug/cache", dependencies=api_guard, tags=["debug"],
+         summary="وضعیت کش (کلیدها + سن)")
+def debug_cache():
+    now = time.time()
+    return {"entries": [{"path": k, "age": round(now - v["ts"], 1),
+                           "ttl": CACHE_TTL.get(k, DEFAULT_TTL)} for k, v in _cache.items()]}
+
 @app.get("/api/security/audit", dependencies=api_guard, tags=["security"],
-         summary="گزارش امنیتی (وضعیت توکن، کلید، CORS، rate-limit، لاگ)")
+         summary="Ú¯Ø²Ø§Ø±Ø´ Ø§Ù…Ù†ÛŒØªÛŒ (ÙˆØ¶Ø¹ÛŒØª ØªÙˆÚ©Ù†ØŒ Ú©Ù„ÛŒØ¯ØŒ CORSØŒ rate-limitØŒ Ù„Ø§Ú¯)")
 def security_audit():
     import os as _os
     log_path = os.path.join(BASE_DIR, "server.log")
@@ -390,7 +403,7 @@ def security_audit():
     }
 
 @app.get("/api/update/check", dependencies=api_guard, tags=["update"],
-         summary="بررسی وجود نسخهٔ جدیدتر روی GitHub")
+         summary="Ø¨Ø±Ø±Ø³ÛŒ ÙˆØ¬ÙˆØ¯ Ù†Ø³Ø®Ù‡Ù” Ø¬Ø¯ÛŒØ¯ØªØ± Ø±ÙˆÛŒ GitHub")
 def update_check():
     try:
         import updater
@@ -402,7 +415,7 @@ def update_check():
         return {"current": "unknown", "latest": None, "error": str(e)}
 
 @app.post("/api/update/apply", dependencies=api_guard, tags=["update"],
-          summary="اعمال به‌روزرسانی (در پس‌زمینه؛ سرور پس از جایگزینی ری‌استارت می‌شود)")
+          summary="Ø§Ø¹Ù…Ø§Ù„ Ø¨Ù‡â€ŒØ±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ (Ø¯Ø± Ù¾Ø³â€ŒØ²Ù…ÛŒÙ†Ù‡Ø› Ø³Ø±ÙˆØ± Ù¾Ø³ Ø§Ø² Ø¬Ø§ÛŒÚ¯Ø²ÛŒÙ†ÛŒ Ø±ÛŒâ€ŒØ§Ø³ØªØ§Ø±Øª Ù…ÛŒâ€ŒØ´ÙˆØ¯)")
 def update_apply():
     def _run():
         try:
@@ -414,7 +427,7 @@ def update_apply():
     return {"ok": True, "message": "update started in background; server will restart"}
 
 @app.get("/api/status", dependencies=api_guard, tags=["system"],
-         summary="وضعیت اتصال و توکن")
+         summary="ÙˆØ¶Ø¹ÛŒØª Ø§ØªØµØ§Ù„ Ùˆ ØªÙˆÚ©Ù†")
 def status():
     return {"hasToken": bool(_token.get("access_token")),
             "tokenExpired": token_expired(),
@@ -424,43 +437,43 @@ def status():
             "version": "1.1.0"}
 
 @app.get("/api/summary", response_model=None, dependencies=api_guard, tags=["data"],
-         summary="خلاصه: موقعیت‌ها + سود/زیان + موجودی + شاخص + تسویع")
+         summary="Ø®Ù„Ø§ØµÙ‡: Ù…ÙˆÙ‚Ø¹ÛŒØªâ€ŒÙ‡Ø§ + Ø³ÙˆØ¯/Ø²ÛŒØ§Ù† + Ù…ÙˆØ¬ÙˆØ¯ÛŒ + Ø´Ø§Ø®Øµ + ØªØ³ÙˆÛŒØ¹")
 def summary():
     return ok(build_summary())
 
 @app.get("/api/positions", dependencies=api_guard, tags=["data"],
-         summary="موقعیت‌های باز آپشن")
+         summary="Ù…ÙˆÙ‚Ø¹ÛŒØªâ€ŒÙ‡Ø§ÛŒ Ø¨Ø§Ø² Ø¢Ù¾Ø´Ù†")
 def positions():
     return ok(fetch_site("/option/api/Positions"))
 
 @app.get("/api/pnl", dependencies=api_guard, tags=["data"],
-         summary="سود/زیان باز و بسته")
+         summary="Ø³ÙˆØ¯/Ø²ÛŒØ§Ù† Ø¨Ø§Ø² Ùˆ Ø¨Ø³ØªÙ‡")
 def pnl():
     return ok(fetch_site("/option-asset/api/Assets/positions-profit-loss?lastInvestmentPeriod=false"))
 
 @app.get("/api/orders", dependencies=api_guard, tags=["data"],
-         summary="سفارش‌های در جریان")
+         summary="Ø³ÙØ§Ø±Ø´â€ŒÙ‡Ø§ÛŒ Ø¯Ø± Ø¬Ø±ÛŒØ§Ù†")
 def orders():
     return ok(fetch_site("/core/api/order"))
 
 @app.get("/api/money", dependencies=api_guard, tags=["data"],
-         summary="موجودی و خریدگان (t0/t1/t2)")
+         summary="Ù…ÙˆØ¬ÙˆØ¯ÛŒ Ùˆ Ø®Ø±ÛŒØ¯Ú¯Ø§Ù† (t0/t1/t2)")
 def money():
     return ok(fetch_site("/easy/api/money"))
 
 @app.get("/api/index", dependencies=api_guard, tags=["data"],
-         summary="شاخص کل بورس")
+         summary="Ø´Ø§Ø®Øµ Ú©Ù„ Ø¨ÙˆØ±Ø³")
 def index():
     return ok(fetch_site("/symbols/api/MarketData/tse-index"))
 
 @app.get("/api/chain", dependencies=api_guard, tags=["option-chain"],
-         summary="زنجیرهٔ آپشن با فیلتر (q / type / marketUnit / limit / offset)")
+         summary="Ø²Ù†Ø¬ÛŒØ±Ù‡Ù” Ø¢Ù¾Ø´Ù† Ø¨Ø§ ÙÛŒÙ„ØªØ± (q / type / marketUnit / limit / offset)")
 def chain(q: str = "", type: str = "", marketUnit: str = "", limit: int = 50, offset: int = 0):
     units = [int(x) for x in marketUnit.split(",") if x.strip().lstrip("-").isdigit()]
     return ok(filter_chain(q, type.lower(), units, min(max(limit,1),1000), max(offset,0)))
 
 @app.get("/api/symbol/{ident}", dependencies=api_guard, tags=["option-chain"],
-         summary="یک قرارداد: با ISIN یا بخشی از عنوان نماد")
+         summary="ÛŒÚ© Ù‚Ø±Ø§Ø±Ø¯Ø§Ø¯: Ø¨Ø§ ISIN ÛŒØ§ Ø¨Ø®Ø´ÛŒ Ø§Ø² Ø¹Ù†ÙˆØ§Ù† Ù†Ù…Ø§Ø¯")
 def symbol(ident: str):
     options = build_chain()["options"]
     il = ident.strip().lower()
@@ -471,7 +484,7 @@ def symbol(ident: str):
     return ok(hits[:20])
 
 @app.get("/api/stream", tags=["realtime"],
-         summary="استریم SSE زنده (دادهٔ هر ۳۰ ثانیه از کش — بدون فشار اضافه)")
+         summary="Ø§Ø³ØªØ±ÛŒÙ… SSE Ø²Ù†Ø¯Ù‡ (Ø¯Ø§Ø¯Ù‡Ù” Ù‡Ø± Û³Û° Ø«Ø§Ù†ÛŒÙ‡ Ø§Ø² Ú©Ø´ â€” Ø¨Ø¯ÙˆÙ† ÙØ´Ø§Ø± Ø§Ø¶Ø§ÙÙ‡)")
 async def stream(request: Request):
     _check_key(request); _check_rate(request)
     async def gen():
@@ -489,11 +502,11 @@ async def stream(request: Request):
     return StreamingResponse(gen(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-store"})
 
-# ───────────────────────── راه‌اندازی ─────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ø±Ø§Ù‡â€ŒØ§Ù†Ø¯Ø§Ø²ÛŒ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import logging
 import traceback
 
-# ───────────────────────── لاگ (فایل + کنسول) ─────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ù„Ø§Ú¯ (ÙØ§ÛŒÙ„ + Ú©Ù†Ø³ÙˆÙ„) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 _log_handler = logging.FileHandler(os.path.join(BASE_DIR, "server.log"), encoding="utf-8")
 _log_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
 _console = logging.StreamHandler()
@@ -514,25 +527,25 @@ def main():
     import uvicorn
     host, port = CFG.get("host") or "127.0.0.1", int(CFG.get("port") or 8787)
     log("=" * 58)
-    log("EasyTrader Option — FastAPI Server")
-    log(f"  داشبورد:    http://{host if host != '0.0.0.0' else '127.0.0.1'}:{port}")
+    log("EasyTrader Option â€” FastAPI Server")
+    log(f"  Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯:    http://{host if host != '0.0.0.0' else '127.0.0.1'}:{port}")
     log(f"  Swagger:    http://127.0.0.1:{port}/docs")
     log(f"  ReDoc:      http://127.0.0.1:{port}/redoc")
     log(f"  OpenAPI:    http://127.0.0.1:{port}/openapi.json")
-    log(f"  SSE اسریم:  http://127.0.0.1:{port}/api/stream")
-    log(f"  Debug:      EASYTRADER_DEBUG=1  یا config.json -> debug:true")
-    log(f"  لاگ فایل:   {os.path.join(BASE_DIR, 'server.log')}")
+    log(f"  SSE Ø§Ø³Ø±ÛŒÙ…:  http://127.0.0.1:{port}/api/stream")
+    log(f"  Debug:      EASYTRADER_DEBUG=1  ÛŒØ§ config.json -> debug:true")
+    log(f"  Ù„Ø§Ú¯ ÙØ§ÛŒÙ„:   {os.path.join(BASE_DIR, 'server.log')}")
     if host == "0.0.0.0":
         key = CFG.get("api_key")
         if key:
-            log(f"  دسترسی شبکه: فعال (کلید API تنظیم شده)")
+            log(f"  Ø¯Ø³ØªØ±Ø³ÛŒ Ø´Ø¨Ú©Ù‡: ÙØ¹Ø§Ù„ (Ú©Ù„ÛŒØ¯ API ØªÙ†Ø¸ÛŒÙ… Ø´Ø¯Ù‡)")
         else:
-            log("  ⚠ دسترسی روی شبکه فعال است ولی api_key ست نشده — در config.json ست کنید")
+            log("  âš  Ø¯Ø³ØªØ±Ø³ÛŒ Ø±ÙˆÛŒ Ø´Ø¨Ú©Ù‡ ÙØ¹Ø§Ù„ Ø§Ø³Øª ÙˆÙ„ÛŒ api_key Ø³Øª Ù†Ø´Ø¯Ù‡ â€” Ø¯Ø± config.json Ø³Øª Ú©Ù†ÛŒØ¯")
     log("=" * 58)
-    # راه‌اندازی بررسی خودکار به‌روزرسانی در پس‌زمینه (غیرمسدودکننده)
+    # Ø±Ø§Ù‡â€ŒØ§Ù†Ø¯Ø§Ø²ÛŒ Ø¨Ø±Ø±Ø³ÛŒ Ø®ÙˆØ¯Ú©Ø§Ø± Ø¨Ù‡â€ŒØ±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø¯Ø± Ù¾Ø³â€ŒØ²Ù…ÛŒÙ†Ù‡ (ØºÛŒØ±Ù…Ø³Ø¯ÙˆØ¯Ú©Ù†Ù†Ø¯Ù‡)
     if CFG.get("auto_update", True) and CFG.get("update_check_on_startup", True):
         def _bg_update():
-            time.sleep(8)  # بگذار سرور کاملاً بالا بیاید
+            time.sleep(8)  # Ø¨Ú¯Ø°Ø§Ø± Ø³Ø±ÙˆØ± Ú©Ø§Ù…Ù„Ø§Ù‹ Ø¨Ø§Ù„Ø§ Ø¨ÛŒØ§ÛŒØ¯
             try:
                 import updater
                 updater.check_and_apply(force=False, interactive=False)
@@ -540,7 +553,7 @@ def main():
                 logger.exception("auto-update check failed: %s", e)
         threading.Thread(target=_bg_update, daemon=True).start()
 
-    # محدودیت حجم لاگ فایل (حداکثر ~5MB)
+    # Ù…Ø­Ø¯ÙˆØ¯ÛŒØª Ø­Ø¬Ù… Ù„Ø§Ú¯ ÙØ§ÛŒÙ„ (Ø­Ø¯Ø§Ú©Ø«Ø± ~5MB)
     try:
         lp = os.path.join(BASE_DIR, 'server.log')
         if os.path.exists(lp) and os.path.getsize(lp) > 5 * 1024 * 1024:
