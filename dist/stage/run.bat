@@ -1,12 +1,11 @@
 @echo off
-chcp 65001 >nul
-title EasyTrader Option Dashboard
+title EasyTrader Option Dashboard - FastAPI
 
-setlocal
 cd /d "%~dp0"
 
-REM ---- Single instance check ----
-powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='python.exe' OR Name='python3.12.exe' OR Name='py.exe'\" | Where-Object { $_.CommandLine -like '*server.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" >nul 2>nul
+REM ---- Single instance: stop any running api_server / legacy server ----
+powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='python.exe' OR Name='python3.12.exe' OR Name='py.exe'\" | Where-Object { $_.CommandLine -like '*api_server.py*' -or $_.CommandLine -like '*server.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" >nul 2>nul
+timeout /t 1 /nobreak >nul
 
 REM ---- Find Python ----
 set "PYEXE="
@@ -19,11 +18,12 @@ if not defined PYEXE (
 )
 
 echo ============================================
-echo   EasyTrader Option Dashboard
+echo   EasyTrader Option Dashboard (FastAPI)
 echo   http://127.0.0.1:8787
+echo   Swagger: http://127.0.0.1:8787/docs
 echo ============================================
 echo.
 
-start "EasyTrader Dash" /I %PYEXE% "%~dp0server.py"
-timeout /t 2 /nobreak >nul
+start "EasyTrader Dash" /I %PYEXE% "%~dp0api_server.py"
+timeout /t 3 /nobreak >nul
 start "" http://127.0.0.1:8787

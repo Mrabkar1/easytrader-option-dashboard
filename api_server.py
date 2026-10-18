@@ -356,7 +356,7 @@ async def post_token(request: Request):
 def health():
     return {"status": "up", "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "token": "none" if not _token.get("access_token") else ("expired" if token_expired() else "valid"),
-            "version": "1.3.0",
+            "version": "1.3.1",
             "debug": DEBUG,
             "cacheEntries": len(_cache),
             "python": sys.version.split()[0]}

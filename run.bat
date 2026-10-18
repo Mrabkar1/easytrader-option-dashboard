@@ -1,37 +1,29 @@
 @echo off
-chcp 65001 >nul
-title EasyTrader Option Dashboard
-setlocal
+title EasyTrader Option Dashboard - FastAPI
+
+cd /d "%~dp0"
+
+REM ---- Single instance: stop any running api_server / legacy server ----
+powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='python.exe' OR Name='python3.12.exe' OR Name='py.exe'\" | Where-Object { $_.CommandLine -like '*api_server.py*' -or $_.CommandLine -like '*server.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" >nul 2>nul
+timeout /t 1 /nobreak >nul
+
+REM ---- Find Python ----
+set "PYEXE="
+where python >nul 2>nul && set "PYEXE=python"
+if not defined PYEXE where py >nul 2>nul && set "PYEXE=py"
+if not defined PYEXE (
+    echo [ERROR] Python not found. Install from python.org first.
+    pause
+    exit /b 1
+)
 
 echo ============================================
-echo   EasyTrader Option - Local Dashboard
+echo   EasyTrader Option Dashboard (FastAPI)
+echo   http://127.0.0.1:8787
+echo   Swagger: http://127.0.0.1:8787/docs
 echo ============================================
 echo.
 
-REM ── اگر سرور قبلاً در حال اجراست، دوباره دان ست نمی کنیم ──
-powershell -NoProfile -Command "$c = Get-CimInstance Win32_Process -Filter \"Name='python.exe' OR Name='python3.12.exe'\" | Where-Object { $_.CommandLine -like '*server.py*' }; if ($c) { Write-Host 'RUNNING' } else { Write-Host 'OK' }" > "%TEMP%\et_check.txt" 2>nul
-findstr /C:"OK" "%TEMP%\et_check.txt" >nul 2>nul
-if %errorlevel%==0 goto :start
-echo سرور قبلاً در حال اجراست — باز کردن داشبورد...
-timeout /t 2 /nobreak >nul
-explorer http://127.0.0.1:8787
-goto :end
-
-:start
-REM ── پیدا کردن Python ──
-where python >nul 2>nul
-if %errorlevel%==0 (
-    start "EasyTrader Dash" /I python "%~dp0server.py"
-    goto :end
-)
-where py >nul 2>nul
-if %errorlevel%==0 (
-    start "EasyTrader Dash" /I py "%~dp0server.py"
-    goto :end
-)
-
-echo [خطا] Python پیدا نشد!
-echo لطفاً Python 3 را از https://python.org نصب کنید.
-
-:end
-endlocal
+start "EasyTrader Dash" /I %PYEXE% "%~dp0api_server.py"
+timeout /t 3 /nobreak >nul
+start "" http://127.0.0.1:8787
